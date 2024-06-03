@@ -78,6 +78,10 @@ def enregistrer_client():
     return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
     
 #Modification Sequence 5
+# Contrôle d'accès utilisateur 
+def check_user_auth(username, password):
+    return username == 'user' and password == '12345'
+    
 @app.route('/fiche_nom/', methods=['GET'])
 @requires_user_auth
 def fiche_nom():
