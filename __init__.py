@@ -5,37 +5,39 @@ from urllib.request import urlopen
 from werkzeug.utils import secure_filename
 import sqlite3
 
-app = Flask(__name__)
+app = Flask(__name__)                                                                                                                  
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
 
 # Fonction pour créer une clé "authentifie" dans la session utilisateur
 def est_authentifie():
     return session.get('authentifie')
 
-# Contrôle d'accès utilisateur pour la route /fiche_nom/
-def check_user_auth(username, password):
-    return username == 'user' and password == '12345'
-
-def authenticate():
-    """Sends a 401 response that enables basic auth"""
-    return Response(
-        'Could not verify your access level for that URL.\n'
-        'You have to login with proper credentials', 401,
-        {'WWW-Authenticate': 'Basic realm="Login Required"'})
-
-def requires_user_auth(f):
-    def decorated(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not check_user_auth(auth.username, auth.password):
-            return authenticate()
-        return f(*args, **kwargs)
-    return decorated
-
 @app.route('/')
 def hello_world():
     return render_template('hello.html')
 
-# Vos autres routes existantes ici...
+@app.route('/lecture')
+def lecture():
+    if not est_authentifie():
+        # Rediriger vers la page d'authentification si l'utilisateur n'est pas authentifié
+        return redirect(url_for('authentification'))
+
+  # Si l'utilisateur est authentifié
+    return "<h2>Bravo, vous êtes authentifié</h2>"
+
+@app.route('/authentification', methods=['GET', 'POST'])
+def authentification():
+    if request.method == 'POST':
+        # Vérifier les identifiants
+        if request.form['username'] == 'admin' and request.form['password'] == 'password': # password à cacher par la suite
+            session['authentifie'] = True
+            # Rediriger vers la route lecture après une authentification réussie
+            return redirect(url_for('lecture'))
+        else:
+            # Afficher un message d'erreur si les identifiants sont incorrects
+            return render_template('formulaire_authentification.html', error=True)
+
+    return render_template('formulaire_authentification.html', error=False)
 
 @app.route('/fiche_client/<int:post_id>')
 def Readfiche(post_id):
@@ -74,8 +76,23 @@ def enregistrer_client():
     conn.commit()
     conn.close()
     return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
-    
+
 #Modification Sequence 5
+
+# Contrôle d'accès utilisateur pour la route /fiche_nom/
+
+def check_user_auth(username, password):
+    return username == 'user' and password == '12345'
+
+# Contrôle d'accès utilisateur
+def requires_user_auth(f):
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_user_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+    
 @app.route('/fiche_nom/<nom>', methods=['GET'])
 @requires_user_auth
 def fiche_nom(nom):
@@ -93,6 +110,7 @@ def fiche_nom(nom):
         })
     else:
         return jsonify({"error": "Client not found"}), 404
-        
+
+                                                                                                                                       
 if __name__ == "__main__":
-    app.run(debug=True)
+  app.run(debug=True)
