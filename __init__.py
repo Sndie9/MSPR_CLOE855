@@ -94,12 +94,13 @@ def requires_user_auth(f):
     return render_template('formulaire_authentification.html', error=False)
 
 # Route pour consulter les fiches clients
-@app.route('/fiche_nom/dupont')
+@app.route('/fiche_nom/')
 @requires_user_auth  # Contrôle d'accès utilisateur requis
-def fiche_nom():
+def fiche_nom(nom):
+    nom = nom.capitalize()  # Assurez-vous que le nom est en majuscule
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM clients WHERE nom = ?', ('dupont',))
+    cursor.execute('SELECT * FROM clients WHERE nom = ?', (nom,))
     client = cursor.fetchone()
     conn.close()
 
