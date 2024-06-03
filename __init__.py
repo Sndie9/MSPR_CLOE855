@@ -1,8 +1,4 @@
-from flask import Flask, render_template_string, render_template, jsonify, request, redirect, url_for, session
-from flask import render_template
-from flask import json
-from urllib.request import urlopen
-from werkzeug.utils import secure_filename
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 import sqlite3
 
 app = Flask(__name__)                                                                                                                  
@@ -22,14 +18,14 @@ def lecture():
         # Rediriger vers la page d'authentification si l'utilisateur n'est pas authentifié
         return redirect(url_for('authentification'))
 
-  # Si l'utilisateur est authentifié
+    # Si l'utilisateur est authentifié
     return "<h2>Bravo, vous êtes authentifié</h2>"
 
 @app.route('/authentification', methods=['GET', 'POST'])
 def authentification():
     if request.method == 'POST':
         # Vérifier les identifiants
-        if request.form['username'] == 'admin' and request.form['password'] == 'password': # password à cacher par la suite
+        if request.form['username'] == 'user' and request.form['password'] == '12345':  # Changement des identifiants
             session['authentifie'] = True
             # Rediriger vers la route lecture après une authentification réussie
             return redirect(url_for('lecture'))
@@ -81,6 +77,10 @@ def enregistrer_client():
 def check_user_auth(username, password):
     return username == 'user' and password == '12345'
 
+# Fonction pour demander l'authentification
+def authenticate():
+    return jsonify({"message": "Authentification requise"}), 401
+
 # Décorateur pour le contrôle d'accès utilisateur
 def requires_user_auth(f):
     def decorated(*args, **kwargs):
@@ -90,11 +90,8 @@ def requires_user_auth(f):
         return f(*args, **kwargs)
     return decorated
 
-
-    return render_template('formulaire_authentification.html', error=False)
-
 # Route pour consulter les fiches clients
-@app.route('/fiche_nom/')
+@app.route('/fiche_nom/<nom>')
 @requires_user_auth  # Contrôle d'accès utilisateur requis
 def fiche_nom(nom):
     nom = nom.capitalize()  # Assurez-vous que le nom est en majuscule
@@ -116,9 +113,3 @@ def fiche_nom(nom):
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-
-                                                                                                                                       
-if __name__ == "__main__":
-  app.run(debug=True)
