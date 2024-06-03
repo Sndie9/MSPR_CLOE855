@@ -90,7 +90,7 @@ def requires_user_auth(f):
         return f(*args, **kwargs)
     return decorated
 
-@app.route('/fiche_nom/')
+@app.route('/fiche_nom/DUPONT')
 @requires_user_auth  # Contrôle d'accès utilisateur requis
 def fiche_nom():
     nom = request.args.get('nom')  # Récupérer le nom du client depuis les paramètres de l'URL
