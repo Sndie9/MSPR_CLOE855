@@ -77,7 +77,7 @@ def enregistrer_client():
     conn.close()
     return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
 
-# Contrôle d'accès utilisateur pour la route /fiche_nom/
+# Contrôle d'accès utilisateur
 def check_user_auth(username, password):
     return username == 'user' and password == '12345'
 
@@ -90,17 +90,33 @@ def requires_user_auth(f):
         return f(*args, **kwargs)
     return decorated
 
-@app.route('/fiche_nom/DUPONT')
+# Fonction pour vérifier si l'utilisateur est authentifié
+def est_authentifie():
+    return session.get('authentifie')
+
+# Route d'authentification
+@app.route('/authentification', methods=['GET', 'POST'])
+def authentification():
+    if request.method == 'POST':
+        # Vérifier les identifiants
+        if request.form['username'] == 'user' and request.form['password'] == '12345':
+            session['authentifie'] = True
+            # Rediriger vers la route lecture après une authentification réussie
+            return redirect(url_for('lecture'))
+        else:
+            # Afficher un message d'erreur si les identifiants sont incorrects
+            return render_template('formulaire_authentification.html', error=True)
+
+    return render_template('formulaire_authentification.html', error=False)
+
+# Route pour consulter les fiches clients
+@app.route('/fiche_nom/dupont')
 @requires_user_auth  # Contrôle d'accès utilisateur requis
 def fiche_nom():
-    nom = request.args.get('nom')  # Récupérer le nom du client depuis les paramètres de l'URL
-    if not nom:
-        return jsonify({"error": "Le paramètre 'nom' est requis"}), 400
-
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM clients WHERE nom = ?', (nom,))
-    client = cursor.fetchone()  # Utilisation de fetchone() car on s'attend à un seul client avec ce nom
+    cursor.execute('SELECT * FROM clients WHERE nom = ?', ('dupont',))
+    client = cursor.fetchone()
     conn.close()
 
     if client:
@@ -112,6 +128,11 @@ def fiche_nom():
         })
     else:
         return jsonify({"error": "Client non trouvé"}), 404
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
 
                                                                                                                                        
 if __name__ == "__main__":
