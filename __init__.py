@@ -77,39 +77,41 @@ def enregistrer_client():
     conn.close()
     return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
 
-#Modification Sequence 5
-
 # Contrôle d'accès utilisateur pour la route /fiche_nom/
-
 def check_user_auth(username, password):
     return username == 'user' and password == '12345'
 
-# Contrôle d'accès utilisateur
+# Décorateur pour le contrôle d'accès utilisateur
 def requires_user_auth(f):
     def decorated(*args, **kwargs):
         auth = request.authorization
         if not auth or not check_user_auth(auth.username, auth.password):
-            return authenticate()
+            return authenticate()  # Redirection vers la page d'authentification si les identifiants sont incorrects
         return f(*args, **kwargs)
     return decorated
-    
-@app.route('/fiche_nom/<nom>', methods=['GET'])
-@requires_user_auth
-def fiche_nom(nom):
+
+@app.route('/fiche_nom/')
+@requires_user_auth  # Contrôle d'accès utilisateur requis
+def fiche_nom():
+    nom = request.args.get('nom')  # Récupérer le nom du client depuis les paramètres de l'URL
+    if not nom:
+        return jsonify({"error": "Le paramètre 'nom' est requis"}), 400
+
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    client = cursor.execute('SELECT * FROM clients WHERE nom = ?', (nom,)).fetchone()
+    cursor.execute('SELECT * FROM clients WHERE nom = ?', (nom,))
+    client = cursor.fetchone()  # Utilisation de fetchone() car on s'attend à un seul client avec ce nom
     conn.close()
 
     if client:
         return jsonify({
-            "id": client["id"],
-            "nom": client["nom"],
-            "prenom": client["prenom"],
-            "adresse": client["adresse"]
+            "id": client[0],
+            "nom": client[1],
+            "prenom": client[2],
+            "adresse": client[3]
         })
     else:
-        return jsonify({"error": "Client not found"}), 404
+        return jsonify({"error": "Client non trouvé"}), 404
 
                                                                                                                                        
 if __name__ == "__main__":
