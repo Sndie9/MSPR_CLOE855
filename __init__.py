@@ -8,16 +8,30 @@ import sqlite3
 app = Flask(__name__)                                                                                                                  
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
 
-# Fonction pour créer une connexion à la base de données SQLite
-def get_db_connection():
-    conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
-    return conn
-
 # Fonction pour créer une clé "authentifie" dans la session utilisateur
 def est_authentifie():
     return session.get('authentifie')
 
+# Contrôle d'accès utilisateur pour la route /fiche_nom/
+def check_user_auth(username, password):
+    return username == 'user' and password == '12345'
+
+def authenticate():
+    """Sends a 401 response that enables basic auth"""
+    return Response(
+        'Could not verify your access level for that URL.\n'
+        'You have to login with proper credentials', 401,
+        {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+def requires_user_auth(f):
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_user_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
+    
 @app.route('/')
 def hello_world():
     return render_template('hello.html')
@@ -84,19 +98,11 @@ def enregistrer_client():
     return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
     
 #Modification Sequence 5
-# Contrôle d'accès utilisateur 
-def check_user_auth(username, password):
-    return username == 'user' and password == '12345'
-    
-@app.route('/fiche_nom/', methods=['GET'])
+@app.route('/fiche_nom/<nom>', methods=['GET'])
 @requires_user_auth
-def fiche_nom():
-    name = request.args.get('nom')
-    if not name:
-        return jsonify({"error": "Name parameter is required"}), 400
-
+def fiche_nom(nom):
     conn = get_db_connection()
-    client = conn.execute('SELECT * FROM clients WHERE nom = ?', (name,)).fetchone()
+    client = conn.execute('SELECT * FROM clients WHERE nom = ?', (nom,)).fetchone()
     conn.close()
 
     if client:
@@ -105,6 +111,10 @@ def fiche_nom():
             "nom": client["nom"],
             "prenom": client["prenom"],
             "adresse": client["adresse"]
+        })
+    else:
+        return jsonify({"error": "Client not found"}), 404
+        
         })
     else:
         return jsonify({"error": "Client not found"}), 404
