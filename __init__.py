@@ -115,9 +115,6 @@ def fiche_nom(nom):
     else:
         return jsonify({"error": "Client not found"}), 404
         
-        })
-    else:
-        return jsonify({"error": "Client not found"}), 404
                                                                                                                                        
 if __name__ == "__main__":
   app.run(debug=True)
