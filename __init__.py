@@ -1,4 +1,8 @@
 from flask import Flask, render_template_string, render_template, jsonify, request, redirect, url_for, session
+from flask import render_template
+from flask import json
+from urllib.request import urlopen
+from werkzeug.utils import secure_filename
 import sqlite3
 
 app = Flask(__name__)                                                                                                                  
@@ -18,14 +22,14 @@ def lecture():
         # Rediriger vers la page d'authentification si l'utilisateur n'est pas authentifié
         return redirect(url_for('authentification'))
 
-    # Si l'utilisateur est authentifié
+  # Si l'utilisateur est authentifié
     return "<h2>Bravo, vous êtes authentifié</h2>"
 
 @app.route('/authentification', methods=['GET', 'POST'])
 def authentification():
     if request.method == 'POST':
         # Vérifier les identifiants
-        if request.form['username'] == 'admin' and request.form['password'] == 'password':  # password à cacher par la suite
+        if request.form['username'] == 'admin' and request.form['password'] == 'password': # password à cacher par la suite
             session['authentifie'] = True
             # Rediriger vers la route lecture après une authentification réussie
             return redirect(url_for('lecture'))
@@ -37,9 +41,6 @@ def authentification():
 
 @app.route('/fiche_client/<int:post_id>')
 def Readfiche(post_id):
-    if not est_authentifie():
-        return redirect(url_for('authentification'))
-
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM clients WHERE id = ?', (post_id,))
@@ -50,9 +51,6 @@ def Readfiche(post_id):
 
 @app.route('/consultation/')
 def ReadBDD():
-    if not est_authentifie():
-        return redirect(url_for('authentification'))
-
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM clients;')
@@ -66,9 +64,6 @@ def formulaire_client():
 
 @app.route('/enregistrer_client', methods=['POST'])
 def enregistrer_client():
-    if not est_authentifie():
-        return redirect(url_for('authentification'))
-
     nom = request.form['nom']
     prenom = request.form['prenom']
 
@@ -82,21 +77,44 @@ def enregistrer_client():
     conn.close()
     return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
 
-@app.route('/fiche_nom/<nom>', methods=['GET'])
-def fiche_nom(nom):
-    if not est_authentifie():
-        return redirect(url_for('authentification'))
-
-    nom = nom.capitalize()  # Assurez-vous que le nom est en majuscule
+#Sequence 5 - 
+@app.route('/fiche_client/<int:post_id>')
+def Readfiche(post_id):
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM clients WHERE nom = ?", (nom,))
+    cursor.execute('SELECT * FROM clients WHERE id = ?', (post_id,))
     data = cursor.fetchall()
     conn.close()
-    if data:
-        return jsonify(data)
-    else:
-        return jsonify({"error": "Client not found"})
+    # Rendre le template HTML et transmettre les données
+    return render_template('read_data.html', data=data)
 
+
+# Fonction pour créer une clé "authentifie_user" dans la session utilisateur
+def est_authentifie_user():
+    return session.get('authentifie_user')
+
+@app.route('/authentification_user', methods=['GET', 'POST'])
+def authentification_user():
+    if request.method == 'POST':
+        if request.form['username'] == 'user' and request.form['password'] == '12345':
+            session['authentifie_user'] = True
+            return redirect(url_for('ReadFicheNom', nom=request.form['nom']))
+        else:
+            return render_template('formulaire_authentification_user.html', error=True)
+
+    return render_template('formulaire_authentification_user.html', error=False)
+
+@app.route('/fiche_nom/<string:nom>')
+def ReadFicheNom(nom):
+    if not est_authentifie_user():
+        return redirect(url_for('authentification_user'))
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM clients WHERE nom = ?', (nom,))
+    data = cursor.fetchall()
+    conn.close()
+    return render_template('read_data.html', data=data)
+                                                                                                                                       
 if __name__ == "__main__":
-    app.run(debug=True)
+  app.run(debug=True)
