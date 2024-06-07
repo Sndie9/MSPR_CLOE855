@@ -76,45 +76,6 @@ def enregistrer_client():
     conn.commit()
     conn.close()
     return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
-
-#Sequence 5 - 
-@app.route('/fiche_client/<int:post_id>')
-def Readfiche(post_id):
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM clients WHERE id = ?', (post_id,))
-    data = cursor.fetchall()
-    conn.close()
-    # Rendre le template HTML et transmettre les données
-    return render_template('read_data.html', data=data)
-
-
-# Fonction pour créer une clé "authentifie_user" dans la session utilisateur
-def est_authentifie_user():
-    return session.get('authentifie_user')
-
-@app.route('/authentification_user', methods=['GET', 'POST'])
-def authentification_user():
-    if request.method == 'POST':
-        if request.form['username'] == 'user' and request.form['password'] == '12345':
-            session['authentifie_user'] = True
-            return redirect(url_for('ReadFicheNom', nom=request.form['nom']))
-        else:
-            return render_template('formulaire_authentification_user.html', error=True)
-
-    return render_template('formulaire_authentification_user.html', error=False)
-
-@app.route('/fiche_nom/<string:nom>')
-def ReadFicheNom(nom):
-    if not est_authentifie_user():
-        return redirect(url_for('authentification_user'))
-
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM clients WHERE nom = ?', (nom.upper(),))
-    data = cursor.fetchall()
-    conn.close()
-    return render_template('read_data.html', data=data)
                                                                                                                                        
 if __name__ == "__main__":
   app.run(debug=True)
