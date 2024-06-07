@@ -68,15 +68,19 @@ def authentification_user():
 
     return render_template('formulaire_authentification_user.html', error=False)
 
-@app.route('/fiche_nom/<string:nom>')
-def ReadFicheNom(nom):
+@app.route('/fiche_nom')
+def ReadFicheNom():
     if not est_authentifie_user():
         return redirect(url_for('authentification_user'))
+
+    nom = request.args.get('nom', '').upper()  # Récupérer le paramètre de requête 'nom' et le convertir en majuscule
+    if not nom:
+        return jsonify({"error": "Nom non fourni"}), 400
 
     try:
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM clients WHERE nom = ?', (nom.upper(),))  # Convertir en majuscule pour la recherche
+        cursor.execute('SELECT * FROM clients WHERE nom = ?', (nom,))
         data = cursor.fetchall()
         conn.close()
         if not data:
