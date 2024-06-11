@@ -2,6 +2,9 @@ from flask import Flask, render_template, jsonify, request, redirect, url_for, s
 import sqlite3
 import logging
 
+#Logs erreurs
+logging.basicConfig(filename='error.log', level=logging.DEBUG)
+
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
 
