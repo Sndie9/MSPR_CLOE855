@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Authentification l'utilisateur</title>
+    </head>
+  <body>
+    <h2>Authentification utilisateur</h2>
+    <form method="post">
+      <label for="username">Nom d'utilisateur:</label>
+      <input type="text" id="username" name="username"><br>
+      <label for="password">Mot de passe:</label>
+      <input type="password" id="password" name="password"><br>
+      <label for="nom">Nom du client:</label>
+      <input type="text" id="nom" name="nom"><br>
+      <input type="submit" value="Se connecter">
+    </form>
+    {% if error %}
+      <p style="color: red;">Nom d'utilisateur ou mot de passe incorrect</p>
+    {% endif %}
+  </body>
+</html>
