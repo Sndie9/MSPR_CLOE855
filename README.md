@@ -268,16 +268,26 @@ Votre MSPR fera l'objet d'un rapport venant accompagner et compléter les travau
 Complétez directement ce Readme pour nous expliquer comment avez sécuriser votre infrastructure.  
 
 **Expliquez nous dans cette section comment fonctionne la sécurisation de votre infrastructure :**  
-..  
-..  
+   - La sauvegarde automatique de la base de données (`database.db`) est effectuée périodiquement sur un serveur distant Alwaysdata.
+     
+   - Le script établit une connexion sécurisée SSH avec le serveur Alwaysdata.
+     
+   - Il crée une sauvegarde de la base de données au format SQL (`sauvegarde.sql`) et la transfère sur le serveur distant.
 
 **Expliquez nous dans cette section comment avez vous sécuriser vos clés SSH :**  
-..  
-..  
+   - Le script utilise des clés SSH pour sécuriser les connexions au serveur Alwaysdata.
+     
+   - Il configure les clés SSH et établit une connexion sécurisée avec le serveur.
+     
+   - Les clés SSH sont stockées de manière sécurisée dans les secrets GitHub pour éviter toute compromission.
 
 **Expliquez nous dans cette section comment avez vous sécuriser votre code :**  
-..  
-..  
+   - Le code du script est sécurisé en utilisant des pratiques de développement sécurisé.
+     
+   - Les secrets sensibles, tels que les clés SSH, sont stockés de manière sécurisée dans les secrets GitHub.
+     
+   - Les fichiers temporaires utilisés pour le transfert de données sont supprimés après leur utilisation pour éviter les fuites potentielles.
+
 
 --------------------------------------------------------------------
 Troubleshooting :
