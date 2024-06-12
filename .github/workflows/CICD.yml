@@ -55,3 +55,26 @@ jobs:
             echo "Échec du redémarrage avec le code de réponse : $response_code"
             exit 1  # Quitter avec un code d'erreur
           fi
+
+ CopyBDD:
+    needs: Connexion
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up SSH known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ssh-${{ secrets.USERNAMEDIST }}.alwaysdata.net >> ~/.ssh/known_hosts
+
+      - name: Connexion SSH avec le serveur
+        uses: appleboy/ssh-action@master
+        with:
+          host: "ssh-${{ secrets.USERNAME }}.alwaysdata.net"
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd $HOME/www/
+            sqlite3 database.db .dump > sauvegarde.sql
+            echo "${{ secrets.SSH_KEY }}" > key.pem && chmod 600 key.pem
+            scp -i "key.pem" sauvegarde.sql ${{ secrets.USERNAMEDIST }}@ssh-${{ secrets.USERNAMEDIST }}.alwaysdata.net:~/www/
+            rm -f key.pem sauvegarde.sql
